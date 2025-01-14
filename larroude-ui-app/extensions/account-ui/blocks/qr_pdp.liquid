@@ -1,0 +1,182 @@
+<script>
+    let current_product = {{ product| json }};
+  </script>
+  {% if request.path contains "qr_landing" %}
+  <style>
+    .qr_benefit_container {
+        padding: 30px 0px 0px 0px;
+  }
+    .benefit_cont {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+  }
+    span.claim_benefit_text {
+    margin-left: 40px;
+    color: #9a9a9a;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Montserrat';
+  }
+    img.claim_benefit_icons {
+        width: 60px;
+  }
+    .qrcode_messages{
+        margin:10px 0px;
+    position: fixed;
+    z-index: 999;
+    top: 45%;
+    left: 33%;
+    width: 30%;
+  
+  }
+    .box{
+        padding:25px;
+  }
+    .close-box{
+    position:absolute;
+    right:10px;
+    font-size:x-large;
+    cursor:pointer;
+  }
+    .qr-message{
+        margin:10px 0px;
+  }
+  @media only screen and (max-width: 768px) {
+    [id^="shopify-block-larroude_qr_pdp"]{
+          margin:30px 0px;
+      }
+    .qrcode_messages{
+    top: 25%;
+    left: auto;
+    width: 90%;
+    }
+  }
+  </style>
+  {% if customer %}
+        <button type="button" data-product="{{ product.id }}" data-user="{{customer.id}}" data-handle="{{request.path |split: "-" | last }}" class="button button--secondary w-full qr_claim btn_custom">CLAIM $20</button>
+    <div class="qrcode_message hidden"></div>
+    {% else %}
+    <a href="/account/login?checkout_url={{request.path}}" class="button button--secondary w-full btn_custom " >CLAIM $20</a>
+    {% endif %}
+    <div class="qrcode_messages color-scheme color-scheme--scheme-3 text-center" hidden>
+        <div class="close-box">&times;</div>
+        <div class="box">
+            <h4 class="medium">$20 Was Added To Your Cart</h4>
+            <p class="qr-message">The discount will be automatically applied.
+                Share this QR Code with friends and family to earn another $20 for each scan.
+                Keep shopping!</p>
+            <a href="https://larroude.com/collections/new-arrivals-shoes" class="medium link">Shop all</a>
+        </div>
+    </div>
+    <div class='qr_benefit_container'>
+        <div class="benefit_cont">
+            <img class="claim_benefit_icons" width="60px" height="auto" src="{{'icon1.png' | asset_url}}">
+                <span class="claim_benefit_text"> Claim your QR, you earn $20</span>
+        </div>
+        <div class="benefit_cont">
+            <img class="claim_benefit_icons" width="60px" height="auto" src="{{'icon2.png' | asset_url}}">
+                <span class="claim_benefit_text"> Share your QR (shoe or phone), someone buys through it, you earn $20</span>
+        </div>
+        <div class="benefit_cont">
+            <img class="claim_benefit_icons" width="60px" height="auto" src="{{'icon3.png' | asset_url}}">
+                <span class="claim_benefit_text"> Buy through a shared QR, save $20</span>
+        </div>
+    </div>
+    <script>
+  
+  
+    const qrBox = document.querySelector('[id^="shopify-block-larroude_qr_pdp_6pYeMC"]');
+    const source = qrBox.parentNode;
+    const destination = document.querySelector('div.contents');
+  
+    // Function to handle moving the qr_box_container
+    function handleScreenSizeChange() {
+      if (window.innerWidth <= 768) { // Mobile screen size (<= 768px)
+        if (qrBox.parentNode !== destination) {
+          // Move the qr_box_container to the destination as the first child
+          destination.insertBefore(qrBox, destination.firstChild);
+        }
+      } else { // Desktop screen size (> 768px)
+        if (qrBox.parentNode !== source) {
+          // Move the qr_box_container back to its original parent
+          source.appendChild(qrBox);
+        }
+      }
+    }
+  document.addEventListener('DOMContentLoaded',function(){
+    // Initial check
+    handleScreenSizeChange();
+  
+    // Check on window resize
+    window.addEventListener('resize', handleScreenSizeChange);
+  });
+  
+  
+        async function qr_postData(url = '', data = { }) {
+    // Default options are marked with *
+    const response = await fetch(url, {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'same-origin', // include, *same-origin, omit
+        headers: {
+            'Content-Type': 'application/json'
+        // 'Content-Type': 'application/x-www-form-urlencoded',
+      },
+        redirect: 'follow', // manual, *follow, error
+        referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify(data) // body data type must match "Content-Type" header
+    });
+        return response.json(); // parses JSON response into native JavaScript objects
+  }
+        let qr_claim_button=document.querySelector('.qr_claim');
+        let qr_claim_message_box=document.querySelector('.qrcode_message');
+        if(qr_claim_button){
+            qr_claim_button.addEventListener('click', function () {
+                qr_claim_button.innerHTML = 'Wait...';
+                qr_claim_button.disabled = true;
+                if (qr_claim_button.getAttribute('data-user').length > 0) {
+                    var QRData = {
+                        'qr_user_id': qr_claim_button.getAttribute('data-user'),
+                        'qr_id': qr_claim_button.getAttribute('data-handle'),
+                        'product_id': qr_claim_button.getAttribute('data-product')
+                    };
+                    qr_postData("https://larroude.com/", QRData).then((data) => {
+  
+                        if (data.status == "success") {
+  
+                            qr_claim_button.innerHTML = 'CLAIMED';
+                            qr_claim_button.disabled = false;
+                            qr_claim_message_box.classList.remove("hidden");
+                            // qr_claim_message_box.innerHTML=data.message;
+                            document.querySelector('.qrcode_messages').style.display = 'flex';
+                            document.querySelector('.qrcode_messages').removeAttribute('hidden');
+                            handleQRReferralProcess();
+                        } else if (data.status == "failed") {
+                            qr_claim_button.innerHTML = 'CLAIM $20';
+                            qr_claim_button.disabled = false;
+                            qr_claim_message_box.classList.remove("hidden");
+                            qr_claim_message_box.innerHTML = data.message;
+                        }
+  
+                    });
+                } else {
+                    qr_claim_message_box.innerHTML = 'Please Login to claim this QR';
+                }
+            });
+        document.querySelector('.close-box').addEventListener('click', function(){
+            document.querySelector('.qrcode_messages').style.display = "none";
+  });
+  }
+  
+    </script>
+  {% endif %}
+  {% schema %}
+    {
+      "name": "Larroude QR PDP",
+      "target": "section",
+      "javascript": "script.js",
+      "settings": []
+    }
+  {% endschema %}

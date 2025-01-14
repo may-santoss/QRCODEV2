@@ -1,0 +1,103 @@
+{% if request.path contains "qr_landing" %}
+<style>
+  .qr-final-container {
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  .qr-final-container h2 {
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: 0.5px;
+    color: #000;
+    margin-bottom: 10px;
+  }
+
+  .qr-final-container p {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.5;
+    margin: 10px 0 20px;
+  }
+
+  .qr-final-container .button {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 12px 0;
+    margin: 10px auto;
+    width: 260px;
+    background-color: #000;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .qr-final-container .secondary-text {
+    margin-top: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+  }
+
+  .qr-final-container .secondary-text a {
+    color: #000;
+    text-decoration: underline;
+    font-weight: normal;
+  }
+
+  .progress-footer {
+    margin-top: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+    text-align: center; 
+  }
+</style>
+
+<div class="qr-final-container">
+  <h2>Congrats, {{ customer.first_name | capitalize }}!</h2>
+  <p>
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+  </p>
+
+  <p class="secondary-text">Want to get more credits?</p>
+  <button class="button share" data-url="https://qr.larroude.com/share">SHARE YOUR QR</button>
+
+  <p class="secondary-text">Or just use your fresh new credits</p>
+  <button class="button" onclick="window.location.href='https://larroude.com/collections/new-best-sellers'">SHOP BEST SELLERS</button>
+
+  <p class="secondary-text">Want to know more about The Token? <a href="https://larroude.com/pages/the-qr-code">Learn more</a></p>
+</div>
+
+<div class="progress-footer">
+  <p>4/4</p>
+</div>
+
+<script>
+  document.querySelector('.share').addEventListener('click', function () {
+    const url = this.getAttribute('data-url');
+    if (navigator.share) {
+      navigator.share({
+        title: 'Larroude Product',
+        text: 'Share this product',
+        url: url
+      }).catch(console.error);
+    } else {
+      alert(`Share this link: ${url}`);
+    }
+  });
+</script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Larroude Final Screen",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

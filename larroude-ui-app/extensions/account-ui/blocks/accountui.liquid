@@ -1,0 +1,274 @@
+{% assign base_url = 'https://larroude.com/a/s' %}
+{% if customer %}
+<script>
+  window.shopifyCustomerId = {{ customer.id }};
+</script>
+{% endif %}
+<script>
+  window.shopifyStoreUrl = "{{ shop.url }}";
+</script>
+<h2 class="center mb-20 account-heading">Account Details</h2>
+
+<div class="tab-wrapper">
+  <div class="tab-container">
+    <div class="tabs">
+      <button class="tab-button" data-tab="Tab1">Larroudé Wallet</button>
+      <button class="tab-button" data-tab="Tab2">Order History</button>
+      <button class="tab-button" data-tab="Tab3">Account Settings</button>
+    </div>
+    <h2 class="waiting center">Loading..</h2>
+    <div class="tab-content active" id="Tab1">
+      <h3 class="center mb-10">*CREDITS TO SPEND:$<span class="amount"></span></h3>
+      <h5 class="center light-gray mb-10">**Pending Referral Credits:$<span class="pending_amount"></span>
+      </h5>
+      <p class="darkgray font-small mb-10">
+        *Your credits are valid for 180 days from the moment you claim them. <span class="strong">Only valid for Larroudé products.</span>
+      </p>
+      <p class="darkgray font-small">**Please note that "pending referral credits" are those credits your referrals that have not yet placed an order - meaning they scanned your QR Code, but haven't bought anything. Send them a reminder! ;)</p>
+      <hr class="divider">
+      <h3 class="center mb-15">YOUR QR CODES</h3>
+      <p class="font-small darkgray mb-10">
+        If you share your QR with friends, they get $20 off their next shoe purchase at larroude.com - and once they finalize their order, you get an extra $20!
+      </p>
+      <div id="qrcodes-container" class="lar-row">
+      </div>
+    </div>
+
+    <div class="tab-content order-history-box" id="Tab2">
+
+      {% if customer.orders.size != 0 %}
+      {% for order in customer.orders limit:20 %}
+      <div class="flex-container ">
+        <div class="flex-card">
+          <div class="order_id flex-dir-col flex mb-10">
+            <div>ORDER {{ order.name }}</div>
+            <small>{{ order.created_at | date: format: 'abbreviated_date' }}</small>
+          </div>
+          <div class="order_line_items">
+            <div class="flex flex-dir-col">
+              {% for order_item in order.line_items %}
+              <div class="flex flex-dir-row mb-10">
+                <a class="account-ui-link" href="{{shop.url}}{{order_item.url}}">
+                  {{ order_item.image | image_url:width:64 |image_tag: height:64, class:'image order-img' }}
+                </a>
+                <div class="flex flex-dir-col order_details_box">
+                  <a class="title-3 size-15 text-capitalize account-ui-link" href="{{shop.url}}{{order_item.url}}">{{order_item.title}}</a>
+                  <div class="links">
+                    <a class="small-text mr-10 account-ui-link" href="https://larroude.happyreturns.com/" target="_blank">Return</a>
+                    <a class="small-text mr-10 share account-ui-link" data-url="{{shop.url}}{{order_item.url}}"
+                      href="javascript:void(0);">Share</a>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="view_details_box">
+              <a class="btn btn-small" href="{{order.customer_url }}">View Details</a>
+            </div>
+          </div>
+
+        </div>
+        <hr class="divider">
+      </div>
+      {% endfor %}
+      {% else %}
+      <p>You did not place any order yet</p>
+      {% endif %}
+    </div>
+
+    <div class="tab-content" id="Tab3">
+      <div class="flex justify-between align-baseline">
+        <h3>User Details</h3>
+        <button class="button" aria-controls="user-edit-form" aria-expanded="false">Edit User</button>
+      </div>
+      
+      <hr class="divider">
+      <div class="form-container" id="user-edit-form" hidden>
+        <form id="user-update-form" method="post" action="{{base_url}}/users/update_customer">
+          <div class="form-group">
+            <input name="utf8" type="hidden" value="✓" />
+            <input type="hidden" name="shopify_user_id" value="{{ customer.id }}">
+            <label for="firstname">First Name</label>
+            <input type="text" id="firstname" name="firstname" placeholder="First Name" required value="{{customer.first_name}}" >
+          </div>
+          <div class="form-group">
+            <label for="lastname">Last Name</label>
+            <input type="text" id="lastname" name="lastname" placeholder="First Name" required value="{{customer.last_name}}" >
+          </div>
+          <div class="form-group">
+            <label for="myemail">Email</label>
+            <input type="email" id="myemail" name="email" placeholder="Your Email" required value="{{customer.email}}">
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" placeholder="Your Phone Number"  value="{{customer.phone}}">
+          </div>
+          <button type="submit" class="button">Update</button>
+          <div id="details-update-message" hidden></div>
+        </form>
+      </div>
+      <div class="data-detail-container flex flex-dir-col">
+       <span><strong>Name: </strong> {{customer.name}}</span>
+        <span><strong>Email: </strong> {{customer.email}}</span>
+        <span><strong>Phone: </strong> {% if customer.phone
+        %}{{customer.phone}}{%else%}None{%endif%}</span>
+      </div>
+      <div class="flex justify-between align-baseline">
+        <h3 class="tabs-title">Primary Address</h3>
+        <button class="button" aria-controls="add-address-form" aria-expanded="false">Add Address</button>
+      </div>
+      <hr class="divider">
+      <div class="data-detail-container">
+              <div class="form-container" id="add-address-form" hidden>
+        <form id="add-address-forms" method="post" action="/account/addresses">
+          <div class="form-group">
+           <input type="hidden" name="form_type" value="customer_address">
+            <input type="hidden" name="utf8" value="✓">
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" name="address[first_name]">
+          </div>
+          <div class="form-group">
+            <label for="last_name">Last Name</label>
+            <input type="text" id="last_name" name="address[last_name]">
+          </div>
+          <div class="form-group">
+            <label for="address1">Address Line 1</label>
+            <input type="text" id="address1" name="address[address1]" required>
+            </div>
+          <div class="form-group">
+            <label for="address2">Address Line 2</label>
+            <input type="text" id="address2" name="address[address2]" required>
+            </div>
+          <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" id="city" name="address[city]" required>
+            </div>
+          <div class="form-group">
+            <label for="zip">ZIP Code</label>
+            <input type="text" id="zip" name="address[zip]" required>
+          </div>
+          <div class="form-group">
+            <label for="province">Province</label>
+            <input type="text" id="province" name="address[province]" required>
+          </div>
+          <div class="form-group">
+          <label for="country">Country</label>
+              <select id="country" name="address[country]" required>
+                {{ all_country_option_tags }}
+              </select>
+          </div>
+          <button type="submit" class="button">Add</button>
+          <div id="address-add-message" hidden></div>
+        </form>
+              </div>
+        <div class="address-container">
+        {%- for address in customer.addresses -%}
+          <div class="address-column toremove-{{ address.id }}" id="address-{{ address.id }}">
+          {%- if address == customer.default_address -%}
+            <strong>Default</strong>
+          {%- endif -%}
+          {{ address | format_address }}
+
+            <div class="flex">
+            <button type="button" style="margin-right:10px;" data-modal-id="edit-modal-{{ address.id }}" class="button open-modal-button">Edit</button>
+
+            
+            <!-- The Modal -->
+            <div class="modal" id="edit-modal-{{ address.id }}">>
+                <div class="modal-content" >
+                    <span class="close-button" id="edit-modal-{{ address.id }}">&times;</span>
+                    <form id="update-address-forms-{{ address.id }}" update-add-id="{{ address.id }}" method="post" action="/account/addresses">
+          <div class="form-group">
+           <input type="hidden" name="form_type" value="customer_address">
+            <input type="hidden" name="utf8" value="✓">
+            <input type="hidden" name="_method" value="put">
+            <label for="first_name-{{ address.id }}">First Name</label>
+            <input type="text" id="first_name-{{ address.id }}" value="{{ address.first_name }}" name="address[first_name]" >
+          </div>
+          <div class="form-group">
+            <label for="last_name-{{ address.id }}">Last Name</label>
+            <input type="text" id="last_name-{{ address.id }}" value="{{ address.last_name }}" name="address[last_name]">
+          </div>
+          <div class="form-group">
+            <label for="address1-{{ address.id }}">Address Line 1</label>
+            <input type="text" id="address1-{{ address.id }}" value="{{ address.address1 }}" name="address[address1]" required>
+            </div>
+            <div class="form-group">
+            <label for="address2-{{ address.id }}">Address Line 1</label>
+            <input type="text" id="address2-{{ address.id }}" value="{{ address.address2 }}" name="address[address2]" required>
+            </div>
+          <div class="form-group">
+            <label for="city-{{ address.id }}">City</label>
+            <input type="text" id="city-{{ address.id }}" value="{{ address.city }}" name="address[city]" required>
+            </div>
+          <div class="form-group">
+            <label for="zip-{{ address.id }}">ZIP Code</label>
+            <input type="text" id="zip-{{ address.id }}" value="{{ address.province_code }}" name="address[zip]" required>
+          </div>
+          <div class="form-group">
+            <label for="province-{{ address.id }}">Province</label>
+            <input type="text" id="province-{{ address.id }}" name="address[province]" value="{{ address.province }}" required>
+          </div>
+          <div class="form-group">
+          <label for="country-{{ address.id }}">Country</label>
+              <select id="country-{{ address.id }}" name="address[country]" data-default="{{address.country}}" required>
+                {{ all_country_option_tags }}
+              </select>
+          </div>
+          <button type="submit" class="button" data-update-message="address-update-message-{{ address.id }}">Update</button>
+          <div id="address-update-message-{{ address.id }}" hidden></div>
+        </form>
+                  
+                </div>
+            </div>
+       
+          <form method="post"  id="deleteadd-{{ address.id }}" data-add-id="{{ address.id }}">
+               <input type="hidden" name="_method" value="delete">
+              <input type="hidden" name="form_type" value="customer_address">
+              <input type="hidden" name="utf8" value="✓">
+            <button type="submit" data-removes="toremove-{{ address.id }}" data-formid="delete-add-{{ address.id }}" class="button submit-delete">Delete</button>
+          </form>
+            </div>
+          </div>
+          <div hidden id="add-delete-message"></div>
+          {% endfor %}
+        </div>
+      </div>
+      
+      <div class="flex justify-between align-baseline">
+        <h3 class="tabs-title">Update Password</h3>
+      </div>
+      <hr class="divider">
+      <div class="data-detail-container flex justify-center">
+        <div class="password-card">
+        <form method="post" id="password-update-form" action="{{base_url}}/users/update_customer_password">
+          <div class="form-group">
+                  <label for="password">New Password</label>
+                  <input type="hidden" name="shopify_user_id" value="{{customer.id}}">
+                  <input type="password" id="password"  name="password" placeholder="New Password"  required>
+          </div>
+          <button type="submit" class="button">Update</button>
+                <div id="password-update-message" hidden></div>
+        </form>
+        </div>
+      </div>
+      <div class="flex justify-end">
+      <a href="/account/logout/" class="button">Logout</a>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="faqs-content center">
+  <h4 class="mb-15">DOUBTS ABOUT THE QR CODE?</h4>
+  <a class="faq-button button button--primary" href="https://larroude.com/pages/faq">Larroudé Token FAQs</a>
+</div>
+{% schema %}
+{
+  "name": "Larroude Account UI",
+  "target": "section",
+  "stylesheet": "account-ui.css",
+  "javascript": "account-ui.min.js",
+  "settings": []
+}
+{% endschema %}

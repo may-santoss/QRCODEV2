@@ -1,0 +1,145 @@
+<script>
+    let current_product = {{ product | json }};
+</script>
+{% if request.path contains "qr_landing" %}
+<style>
+    .qr-claim-container {
+        max-width: 400px;
+        margin: 0 auto;
+        text-align: center;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .qr-claim-container h2 {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-style: italic;
+        letter-spacing: 0.5px;
+        color: #000;
+        margin-bottom: 10px;
+    }
+
+    .qr-claim-container p {
+        font-size: 16px;
+        color: #555;
+        line-height: 1.5;
+        margin: 5px 0 20px;
+    }
+
+    .qr-claim-container .claim-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 20px 0;
+    }
+
+    .qr-claim-container img {
+        width: 80px;
+        margin-right: 20px;
+    }
+
+    .qr-claim-container .button--secondary {
+        display: block;
+        font-size: 16px;
+        font-weight: bold;
+        padding: 12px 0;
+        margin: 0 auto;
+        width: 200px;
+        background-color: #000;
+        color: #fff;
+        text-align: center;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .progress-text {
+        font-size: 16px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+        color: #333;
+        margin-top: 20px;
+    }
+</style>
+
+<div id="qr-claim-container">
+    {% if customer %}
+    <div class="qr-claim-container">
+        <h2>Claim your token, {{ customer.first_name | capitalize }}!</h2>
+        <p>
+            Text explaining how the credits work. Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
+            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        </p>
+        <p><strong>Your credits will be valid for <span style="color: #000;">180 days</span> starting today!</strong></p>
+        <div class="claim-wrapper">
+            <img src="{{ product.featured_image | img_url: '300x' }}" alt="{{ product.title }}">
+            <button type="button" data-product="{{ product.id }}" data-user="{{ customer.id }}" data-handle="{{ request.path | split: '-' | last }}" class="button button--secondary qr_claim">CLAIM $20</button>
+        </div>
+        <div class="progress-text">3/4</div>
+    </div>
+    {% else %}
+    <div class="qr-claim-container">
+        <h2>Please Login to Claim Your Token!</h2>
+        <p>Log into your account or create a new one to proceed.</p>
+        <div>
+            <a href="/account/login?return_to={{ request.path }}" class="button button--secondary">LOGIN</a>
+            <a href="/account/register?return_to={{ request.path }}" class="button button--secondary">CREATE ACCOUNT</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const qr_claim_button = document.querySelector('.qr_claim');
+        if (qr_claim_button) {
+            qr_claim_button.addEventListener('click', function () {
+                qr_claim_button.innerHTML = 'Wait...';
+                qr_claim_button.disabled = true;
+
+                
+                setTimeout(() => {
+                    qr_claim_button.innerHTML = 'Processing...';
+                    const QRData = {
+                        qr_user_id: qr_claim_button.getAttribute('data-user'),
+                        qr_id: qr_claim_button.getAttribute('data-handle'),
+                        product_id: qr_claim_button.getAttribute('data-product'),
+                    };
+
+                   
+                    fetch("https://larroude.com/", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(QRData),
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if (data.status === "success") {
+                                qr_claim_button.innerHTML = 'CLAIMED';
+                                alert("$20 was added to your cart!");
+                            } else {
+                                qr_claim_button.innerHTML = 'CLAIM $20';
+                                qr_claim_button.disabled = false;
+                                alert("Failed to claim token. Please try again.");
+                            }
+                        })
+                        .catch((error) => {
+                            qr_claim_button.innerHTML = 'CLAIM $20';
+                            qr_claim_button.disabled = false;
+                            console.error('Error:', error);
+                        });
+                }, 3000); 
+            });
+        }
+    });
+</script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Claim Your Token",
+  "target": "section",
+  "javascript": "script.js",
+  "settings": []
+}
+{% endschema %}
